@@ -1,0 +1,60 @@
+# ============================================================
+# render.yaml - Render Blueprint 設定ファイル
+# ============================================================
+# このファイルを使うと、Render上のサービスを自動で作成できます。
+# 「方法A」と「方法B」のどちらかを選んで使ってください。
+#
+# ⚠️ 使わない方はコメントアウト（行頭に # をつける）してください。
+# ⚠️ 両方を同時に有効にしないでください！
+# ============================================================
+
+# ──────────────────────────────────────────────
+# 方法A: Cron Job（有料: 最低 $1/job × 2 = $2/月）
+# ──────────────────────────────────────────────
+# 2つのCron Jobで、朝6:30と夕方18:30（JST）に実行します。
+# Renderのcronスケジュールは UTC なので、JSTから-9時間で指定します。
+#   JST 06:30 → UTC 21:30（前日）
+#   JST 18:30 → UTC 09:30
+
+services:
+  - type: cron
+    name: weather-notify-morning
+    runtime: python
+    schedule: "30 21 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python weather_notify.py
+    envVars:
+      - key: CHANNEL_ACCESS_TOKEN
+        sync: false
+      - key: LINE_USER_ID
+        sync: false
+
+  - type: cron
+    name: weather-notify-evening
+    runtime: python
+    schedule: "30 9 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python weather_notify.py
+    envVars:
+      - key: CHANNEL_ACCESS_TOKEN
+        sync: false
+      - key: LINE_USER_ID
+        sync: false
+
+# ──────────────────────────────────────────────
+# 方法B: Web Service + APScheduler（無料枠で動作可能）
+# ──────────────────────────────────────────────
+# 使う場合は、上の「方法A」をすべてコメントアウトして、
+# 下のコメントを外してください。
+#
+# services:
+#   - type: web
+#     name: weather-notify-server
+#     runtime: python
+#     buildCommand: pip install -r requirements.txt
+#     startCommand: gunicorn server:app --bind 0.0.0.0:$PORT
+#     envVars:
+#       - key: CHANNEL_ACCESS_TOKEN
+#         sync: false
+#       - key: LINE_USER_ID
+#         sync: false
