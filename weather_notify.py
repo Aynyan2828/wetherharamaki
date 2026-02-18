@@ -20,9 +20,9 @@ from datetime import datetime, timedelta, timezone
 CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN", "")
 LINE_USER_ID = os.environ.get("LINE_USER_ID", "")
 
-# 天気予報を取得する場所（佐賀県神埼市脊振町服巻）
-LATITUDE = 33.40
-LONGITUDE = 130.33
+# 天気予報を取得する場所（背振工場）
+LATITUDE = 33.414966
+LONGITUDE = 130.352316
 LOCATION_NAME = "神埼市脊振町服巻"
 
 # ============================================================
