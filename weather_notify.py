@@ -20,10 +20,10 @@ from datetime import datetime, timedelta, timezone
 CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN", "")
 LINE_USER_ID = os.environ.get("LINE_USER_ID", "")
 
-# 天気予報を取得する場所（背振工場）
+# 天気予報を取得する場所（佐賀県神埼市脊振町服巻）
 LATITUDE = 33.414966
 LONGITUDE = 130.352316
-LOCATION_NAME = "神埼市脊振町服巻"
+LOCATION_NAME = "大島産業脊振支店"
 
 # ============================================================
 # WMO Weather Code → 日本語＋絵文字 変換テーブル
@@ -127,16 +127,16 @@ def create_message(weather_data):
 
 def send_line_message(message):
     """
-    LINE Messaging API v2 でプッシュメッセージを送信する。
+    LINE Messaging API v2 でブロードキャストメッセージを送信する。
+    公式LINEの友だち全員に一斉送信する。
     line-bot-sdk は使わず、requests だけで動作する。
     """
-    url = "https://api.line.me/v2/bot/message/push"
+    url = "https://api.line.me/v2/bot/message/broadcast"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}",
     }
     payload = {
-        "to": LINE_USER_ID,
         "messages": [
             {
                 "type": "text",
@@ -200,4 +200,3 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
