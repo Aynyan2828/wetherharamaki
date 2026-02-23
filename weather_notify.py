@@ -3,7 +3,8 @@
 """
 天気予報LINE通知スクリプト（Render用）
 - Open-Meteo APIで天気予報を取得
-- LINE Messaging APIでプッシュ通知
+- LINE Messaging APIでブロードキャスト通知
+- 落雷予報（雷注意アラート）付き
 - line-bot-sdkは使わず、requestsだけで動作
 """
 
@@ -60,6 +61,9 @@ WEATHER_CODES = {
     99: ("雷雨と雹", "⛈️"),
 }
 
+# 雷関連の天気コード
+THUNDER_CODES = {95, 96, 99}
+
 
 def get_weather_forecast():
     """
@@ -83,6 +87,7 @@ def create_message(weather_data):
     """
     天気予報データから、LINEで送るメッセージ文字列を作成する。
     現在時刻から 0, 2, 4, 6, 8, 10, 12, 13 時間後の8行を表示。
+    雷予報がある場合は警告を表示する。
     """
     JST = timezone(timedelta(hours=9))
     now = datetime.now(JST)
@@ -100,6 +105,7 @@ def create_message(weather_data):
     # 表示する時間オフセット（時間後）
     offsets = [0, 2, 4, 6, 8, 10, 12, 13]
     lines = []
+    thunder_times = []
 
     for offset in offsets:
         target_time = now + timedelta(hours=offset)
@@ -117,12 +123,27 @@ def create_message(weather_data):
         code = code_list[idx]
         desc, icon = WEATHER_CODES.get(code, ("不明", "❓"))
 
-        lines.append(f"{time_str} {icon}{desc} {temp}°C 💧{precip}%")
+        # 雷予報チェック
+        if code in THUNDER_CODES:
+            lines.append(f"{time_str} {icon}{desc} {temp}°C 💧{precip}% ⚡")
+            thunder_times.append(time_str)
+        else:
+            lines.append(f"{time_str} {icon}{desc} {temp}°C 💧{precip}%")
 
     if not lines:
         return header + "（天気データを取得できませんでした）"
 
-    return header + "\n".join(lines)
+    message = header + "\n".join(lines)
+
+    # 雷注意アラート
+    if thunder_times:
+        message += "\n\n" + "━" * 16
+        message += "\n⚡⚡ 落雷注意 ⚡⚡"
+        message += f"\n{', '.join(thunder_times)}頃に"
+        message += "\n雷雨の予報が出ています！"
+        message += "\n屋外作業にご注意ください。"
+
+    return message
 
 
 def send_line_message(message):
